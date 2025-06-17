@@ -1601,3 +1601,158 @@ window.addEventListener('resize', debounce(() => {
     });
 }, 250));
 
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.deployment-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and contents
+            tabs.forEach(t => {
+                t.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                t.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                content.classList.add('hidden');
+            });
+            
+            // Add active class to clicked tab
+            this.classList.add('active', 'border-blue-500', 'text-blue-600');
+            this.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Show corresponding content
+            const targetContent = document.getElementById(targetTab + '-tab');
+            if (targetContent) {
+                targetContent.classList.add('active');
+                targetContent.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Province marker interactions
+    const provinceMarkers = document.querySelectorAll('.province-marker');
+    const provinceItems = document.querySelectorAll('.province-item');
+
+    provinceMarkers.forEach(marker => {
+        marker.addEventListener('mouseenter', function() {
+            const provinceName = this.getAttribute('data-province');
+            // Highlight corresponding province in list
+            provinceItems.forEach(item => {
+                if (item.getAttribute('data-province') === provinceName) {
+                    item.classList.add('bg-blue-50', 'border-blue-200');
+                }
+            });
+        });
+
+        marker.addEventListener('mouseleave', function() {
+            // Remove highlight from all province items
+            provinceItems.forEach(item => {
+                item.classList.remove('bg-blue-50', 'border-blue-200');
+            });
+        });
+    });
+
+    // Province item interactions
+    provinceItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            const provinceName = this.getAttribute('data-province');
+            // Highlight corresponding marker
+            provinceMarkers.forEach(marker => {
+                if (marker.getAttribute('data-province') === provinceName) {
+                    const dot = marker.querySelector('.marker-dot, .w-4');
+                    if (dot) {
+                        dot.classList.add('scale-150', 'ring-4', 'ring-blue-300');
+                    }
+                }
+            });
+        });
+
+        item.addEventListener('mouseleave', function() {
+            // Remove highlight from all markers
+            provinceMarkers.forEach(marker => {
+                const dot = marker.querySelector('.marker-dot, .w-4');
+                if (dot) {
+                    dot.classList.remove('scale-150', 'ring-4', 'ring-blue-300');
+                }
+            });
+        });
+    });
+
+    // Animate stats on scroll
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statNumbers = entry.target.querySelectorAll('.stat-number, .text-3xl');
+                statNumbers.forEach(stat => {
+                    animateNumber(stat);
+                });
+            }
+        });
+    }, observerOptions);
+
+    // Observe stats sections
+    const statsSection = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-3.gap-6');
+    if (statsSection) {
+        observer.observe(statsSection);
+    }
+
+    function animateNumber(element) {
+        const finalNumber = element.textContent.replace(/[^\d]/g, '');
+        if (!finalNumber) return;
+        
+        const duration = 2000;
+        const increment = Math.ceil(finalNumber / (duration / 16));
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= finalNumber) {
+                current = finalNumber;
+                clearInterval(timer);
+            }
+            
+            // Preserve original formatting
+            if (element.textContent.includes('+')) {
+                element.textContent = current.toLocaleString() + '+';
+            } else {
+                element.textContent = current.toLocaleString();
+            }
+        }, 16);
+    }
+
+    // Progress bar animation
+    const progressBars = document.querySelectorAll('.bg-blue-500, .bg-emerald-500, .bg-purple-500');
+    const progressObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.width = '0%';
+                setTimeout(() => {
+                    entry.target.style.transition = 'width 1.5s ease-out';
+                    if (entry.target.classList.contains('bg-blue-500')) {
+                        entry.target.style.width = '50%';
+                    } else if (entry.target.classList.contains('bg-emerald-500')) {
+                        entry.target.style.width = '35%';
+                    } else if (entry.target.classList.contains('bg-purple-500')) {
+                        entry.target.style.width = '15%';
+                    }
+                }, 100);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    progressBars.forEach(bar => {
+        progressObserver.observe(bar);
+    });
+});
+
+
